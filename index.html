@@ -15,13 +15,19 @@
             font-family: Arial, sans-serif;
             transition: background-color 0.5s;
         }
-        .quote {
-            font-size: 2em;
+        .quote-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
             text-align: center;
+        }
+        .quote {
+            font-size: calc(1em + 2vw);
             transition: color 0.5s;
         }
         footer {
-            margin-top: auto;
             font-size: 0.8em;
             text-align: center;
             width: 100%;
@@ -30,9 +36,11 @@
     </style>
 </head>
 <body>
-    <div class="quote">Loading...</div>
+    <div class="quote-container">
+        <div class="quote">Loading...</div>
+    </div>
     <footer>
-        <p>Proudly Designed and Developed in Texs.</p>
+        <p>Proudly Designed and Developed in Texas.</p>
     </footer>
     <script>
         let lines = [];
@@ -92,7 +100,7 @@
 
         function startIntervals() {
             displayNextLine(); // Display the first quote immediately
-            displayInterval = setInterval(displayNextLine, 10000); // Display new quote every 7 seconds
+            displayInterval = setInterval(displayNextLine, 10000); // Display new quote every 10 seconds
             fetchInterval = setInterval(async () => {
                 await fetchLines();
                 // Restart the display interval to avoid overlap
