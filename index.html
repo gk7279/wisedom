@@ -25,6 +25,8 @@
     <script>
         let lines = [];
         let currentIndex = -1;
+        let displayInterval;
+        let fetchInterval;
 
         async function fetchLines() {
             try {
@@ -65,12 +67,19 @@
             document.body.style.backgroundColor = randomColor;
         }
 
+        function startIntervals() {
+            displayNextLine(); // Display the first quote immediately
+            displayInterval = setInterval(displayNextLine, 7000); // Display new quote every 7 seconds
+            fetchInterval = setInterval(async () => {
+                await fetchLines();
+                // Restart the display interval to avoid overlap
+                clearInterval(displayInterval);
+                displayInterval = setInterval(displayNextLine, 7000);
+            }, 10000); // Re-fetch the quotes every 10 seconds
+        }
+
         // Initial fetch and setup intervals
-        fetchLines().then(() => {
-            displayNextLine(); // Display the first quote after initial fetch
-            setInterval(displayNextLine, 7000); // Display new quote every 7 seconds
-            setInterval(fetchLines, 10000); // Re-fetch the quotes every 10 seconds
-        });
+        fetchLines().then(startIntervals);
     </script>
 </body>
 </html>
