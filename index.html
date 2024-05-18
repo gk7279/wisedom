@@ -85,7 +85,7 @@
                 // Restart the display interval to avoid overlap
                 clearInterval(displayInterval);
                 displayInterval = setInterval(displayNextLine, 7000);
-            }, 10000); // Re-fetch the quotes every 10 seconds
+            }, 1800000); // Re-fetch the quotes every 30minutes
         }
 
         // Initial fetch and setup intervals
