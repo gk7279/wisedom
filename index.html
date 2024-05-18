@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Quote Display</title>
+    <title>Wisedom</title>
     <style>
         body {
             display: flex;
@@ -38,12 +38,21 @@
                 const text = await response.text();
                 lines = text.split('\n').map(line => line.trim()).filter(line => line);
                 if (lines.length > 0) {
+                    shuffleLines();
                     displayNextLine();
                 } else {
                     document.querySelector('.quote').innerText = 'No quotes found in the file.';
                 }
             } catch (error) {
                 document.querySelector('.quote').innerText = 'Error loading quotes: ' + error.message;
+            }
+        }
+
+        // Function to shuffle the lines array
+        function shuffleLines() {
+            for (let i = lines.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [lines[i], lines[j]] = [lines[j], lines[i]];
             }
         }
 
@@ -64,7 +73,7 @@
         // Initial fetch
         fetchLines();
 
-        // Set interval to update the quote every 5 seconds
+        // Set interval to update the quote every 7 seconds
         setInterval(displayNextLine, 7000);
 
         // Set interval to re-fetch the text file every 10 seconds
