@@ -79,12 +79,12 @@
 
         function startIntervals() {
             displayNextLine(); // Display the first quote immediately
-            displayInterval = setInterval(displayNextLine, 7000); // Display new quote every 7 seconds
+            displayInterval = setInterval(displayNextLine, 10000); // Display new quote every 7 seconds
             fetchInterval = setInterval(async () => {
                 await fetchLines();
                 // Restart the display interval to avoid overlap
                 clearInterval(displayInterval);
-                displayInterval = setInterval(displayNextLine, 7000);
+                displayInterval = setInterval(displayNextLine, 10000);
             }, 1800000); // Re-fetch the quotes every 30minutes
         }
 
