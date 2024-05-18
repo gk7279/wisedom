@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wisedom</title>
+    <title>Random Quote Display</title>
     <style>
         body {
             display: flex;
@@ -23,12 +23,9 @@
 <body>
     <div class="quote">Loading...</div>
     <script>
-        // Array to store lines from the text file
         let lines = [];
-        // Current line index
         let currentIndex = -1;
 
-        // Function to fetch the lines from the text file
         async function fetchLines() {
             try {
                 const response = await fetch('quotes.txt');
@@ -36,10 +33,11 @@
                     throw new Error('Network response was not ok ' + response.statusText);
                 }
                 const text = await response.text();
-                lines = text.split('\n').map(line => line.trim()).filter(line => line);
-                if (lines.length > 0) {
+                const newLines = text.split('\n').map(line => line.trim()).filter(line => line);
+                if (newLines.length > 0) {
+                    lines = newLines;
                     shuffleLines();
-                    displayNextLine();
+                    currentIndex = -1; // Reset index to start fresh
                 } else {
                     document.querySelector('.quote').innerText = 'No quotes found in the file.';
                 }
@@ -48,7 +46,6 @@
             }
         }
 
-        // Function to shuffle the lines array
         function shuffleLines() {
             for (let i = lines.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -56,7 +53,6 @@
             }
         }
 
-        // Function to display the next line
         function displayNextLine() {
             if (lines.length === 0) return;
             currentIndex = (currentIndex + 1) % lines.length;
@@ -64,20 +60,17 @@
             changeBackgroundColor();
         }
 
-        // Function to change the background color
         function changeBackgroundColor() {
-            const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+            const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
             document.body.style.backgroundColor = randomColor;
         }
 
-        // Initial fetch
-        fetchLines();
-
-        // Set interval to update the quote every 7 seconds
-        setInterval(displayNextLine, 7000);
-
-        // Set interval to re-fetch the text file every 10 seconds
-        setInterval(fetchLines, 10000);
+        // Initial fetch and setup intervals
+        fetchLines().then(() => {
+            displayNextLine(); // Display the first quote after initial fetch
+            setInterval(displayNextLine, 7000); // Display new quote every 7 seconds
+            setInterval(fetchLines, 10000); // Re-fetch the quotes every 10 seconds
+        });
     </script>
 </body>
 </html>
