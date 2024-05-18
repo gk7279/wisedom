@@ -7,6 +7,7 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -19,10 +20,20 @@
             text-align: center;
             transition: color 0.5s;
         }
+        footer {
+            margin-top: auto;
+            font-size: 0.8em;
+            text-align: center;
+            width: 100%;
+            padding: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div class="quote">Loading...</div>
+    <footer>
+        <p>Proudly Designed and Developed in Texas.</p>
+    </footer>
     <script>
         let lines = [];
         let currentIndex = -1;
@@ -66,7 +77,9 @@
         function changeBackgroundColor() {
             const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
             document.body.style.backgroundColor = randomColor;
-            document.querySelector('.quote').style.color = getContrastColor(randomColor);
+            const contrastColor = getContrastColor(randomColor);
+            document.querySelector('.quote').style.color = contrastColor;
+            document.querySelector('footer p').style.color = contrastColor;
         }
 
         function getContrastColor(hexColor) {
@@ -85,14 +98,11 @@
                 // Restart the display interval to avoid overlap
                 clearInterval(displayInterval);
                 displayInterval = setInterval(displayNextLine, 10000);
-            }, 1800000); // Re-fetch the quotes every 30minutes
+            }, 1800000); // Re-fetch the quotes every 30 minutes
         }
 
         // Initial fetch and setup intervals
         fetchLines().then(startIntervals);
     </script>
-<footer>
-  <p>Proudly Designed and Developed in Texas.</p>
-</footer>
 </body>
 </html>
