@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lender EMI Calculator with Prepayment</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+input { margin: 6px 0; padding: 6px; width: 200px; }
+label { font-weight: bold; }
+button { padding: 8px 16px; margin-top: 10px; }
+table { 
+    border-collapse: collapse; 
+    margin-top: 20px; 
+    font-size: 14px; 
+    width: 100%;
+}
+th, td { 
+    border: 2px solid #333; 
+    padding: 8px 12px; 
+    text-align: left;
+}
+th { 
+    font-weight: bold;
+    color: #000;
+}
+th:nth-child(1) { background: #FFB6C1; } /* Light Pink */
+th:nth-child(2) { background: #87CEEB; } /* Sky Blue */
+th:nth-child(3) { background: #98FB98; } /* Pale Green */
+th:nth-child(4) { background: #FFD700; } /* Gold */
+th:nth-child(5) { background: #FFA07A; } /* Light Salmon */
+th:nth-child(6) { background: #DDA0DD; } /* Plum */
+th:nth-child(7) { background: #F0E68C; } /* Khaki */
+th:nth-child(8) { background: #B0E0E6; } /* Powder Blue */
+th:nth-child(9) { background: #FFDAB9; } /* Peach Puff */
+th:nth-child(10) { background: #E6E6FA; } /* Lavender */
+
+.summary { margin-top: 15px; font-size: 15px; }
+
+/* Print styles to ensure borders and colors show up */
+@media print {
+    table { 
+        border-collapse: collapse;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    th, td { 
+        border: 2px solid #333 !important;
+    }
+    th {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h2>Lender EMI Calculator</h2>
+
+<label>Lent Amount (₹):</label><br>
+<input id="principal" value="1700000"><br>
+
+<label>APR (% per year):</label><br>
+<input id="apr" value="8"><br>
+
+<label>Duration (Months):</label><br>
+<input id="months" value="48"><br>
+
+<label>Prepayment Fee (% of outstanding/bal principal):</label><br>
+<input id="prepay" value="5"><br>
+
+<button onclick="calculate()">Calculate</button>
+
+<div class="summary" id="summary"></div>
+
+<table id="table"></table>
+
+<script>
+function calculate() {
+    const P = Number(document.getElementById("principal").value);
+    const aprAnnual = Number(document.getElementById("apr").value) / 100;
+    const n = Number(document.getElementById("months").value);
+    const prepayFeePercent = Number(document.getElementById("prepay").value) / 100;
+
+    const r = aprAnnual / 12;
+    const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const totalReturn = emi * n;
+    const profit = totalReturn - P;
+
+    const today = new Date();
+    const firstPayment = new Date(today.getFullYear(), today.getMonth() + 1, 5);
+    const lastPayment = new Date(firstPayment);
+    lastPayment.setMonth(lastPayment.getMonth() + n - 1);
+
+    let rows = `
+        <tr>
+            <th>Month</th>
+            <th>Payment Date</th>
+            <th>EMIPayment(A=B+D)</th>
+            <th>InterestEarned(B)</th>
+            <th>TotalInterestEarned(C)</th>
+            <th>PrincipalPaid(D)</th>
+            <th>TotalPrincipalPaid(E)</th>
+            <th>Bal.Principal(F)</th>
+            <th>Prepayment(G = F + ${prepayFeePercent*100}% (F) )</th>
+            <th>GrandTotal If Prepaying Fully Today(A + G)</th>
+        </tr>`;
+
+    let outstanding = P;
+    let totalPrincipalRecovered = 0;
+    let totalInterestEarned = 0;
+
+    for (let i = 1; i <= n; i++) {
+        const interest = outstanding * r;
+        const principalPart = emi - interest;
+        outstanding -= principalPart;
+        totalPrincipalRecovered += principalPart;
+        totalInterestEarned += interest;
+
+        const payDate = new Date(firstPayment);
+        payDate.setMonth(firstPayment.getMonth() + i - 1);
+
+        // Prepayment calculation on remaining principal
+        const prepayFee = outstanding * prepayFeePercent;
+        const prepayTotal = outstanding + prepayFee;
+        const grandTotal = emi + prepayTotal;
+
+        rows += `
+        <tr>
+            <td>${i}</td>
+            <td>${payDate.toDateString()}</td>
+            <td><b>${emi.toFixed(2)}</b></td>
+            <td>${interest.toFixed(2)}</td>
+            <td>${totalInterestEarned.toFixed(2)}</td>
+            <td>${principalPart.toFixed(2)}</td>
+            <td>${totalPrincipalRecovered.toFixed(2)}</td>
+            <td>${Math.max(outstanding,0).toFixed(2)}</td>
+            <td><b>${prepayTotal.toFixed(2)}</b> = ${Math.max(outstanding,0).toFixed(2)} + ${prepayFee.toFixed(2)}</td>
+            <td><b>${grandTotal.toFixed(2)}</b></td>
+        </tr>`;
+    }
+
+    document.getElementById("summary").innerHTML = `
+        <b>Lent Amount:</b> ₹${P.toFixed(2)}<br>
+        <b>APR:</b> ${(aprAnnual*100).toFixed(2)}%<br>
+        <b>Duration:</b> ${n} months<br>
+        <b>Monthly EMI:</b> ₹${emi.toFixed(2)}<br>
+        <b>Total Return:</b> ₹${totalReturn.toFixed(2)}<br>
+        <b>Total Profit:</b> ₹${profit.toFixed(2)}<br>
+        <b>First Payment:</b> ${firstPayment.toDateString()}<br>
+        <b>Last Payment:</b> ${lastPayment.toDateString()}<br>
+        <b>Payment Rule:</b> Every <b>5th of the month</b> (no prorating)<br>
+        <b>Prepayment Fee:</b> ${prepayFeePercent*100}% of outstanding/bal principal
+    `;
+
+    document.getElementById("table").innerHTML = rows;
+}
+</script>
+
+</body>
+</html>
