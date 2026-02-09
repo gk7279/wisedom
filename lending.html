@@ -89,7 +89,7 @@ function calculate() {
     const profit = totalReturn - P;
 
     const today = new Date();
-    const firstPayment = new Date(today.getFullYear(), today.getMonth() + 1, 5);
+    const firstPayment = new Date(today.getFullYear(), today.getMonth() + 1, 12);
     const lastPayment = new Date(firstPayment);
     lastPayment.setMonth(lastPayment.getMonth() + n - 1);
 
